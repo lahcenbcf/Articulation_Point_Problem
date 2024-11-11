@@ -1,232 +1,240 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Interactive Graph Creator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
     <style>
-        #mynetwork {
-            width: 800px;
-            height: 600px;
-            border: 1px solid lightgray;
-            margin: 20px auto;
-        }
-        .container {
-            text-align: center;
-            font-family: Arial, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        .controls {
-            margin: 20px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .mode-label {
-            font-size: 18px;
-            margin: 10px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            display: inline-block;
-        }
+      #mynetwork {
+        width: 800px;
+        height: 600px;
+        border: 1px solid lightgray;
+        margin: 20px auto;
+      }
+      .container {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .controls {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 10px;
+        cursor: pointer;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .mode-label {
+        font-size: 18px;
+        margin: 10px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        display: inline-block;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>Interactive Graph Creator</h1>
-        <div class="controls">
-            <button onclick="enableNodeMode()">Add Nodes Mode</button>
-            <button onclick="enableEdgeMode()">Add Edges Mode</button>
-            <button onclick="deleteSelected()">Delete Selected</button>
-            <button onclick="findArticulationPoints()">Find Articulation Points</button>
-            <button onclick="resetGraph()">Reset Colors</button>
-            <button onclick="clearGraph()">Clear Graph</button>
-            <div class="mode-label" id="modeDisplay">Current Mode: None</div>
-        </div>
-        <div id="mynetwork"></div>
-        <div class="instructions">
-            <h3>Instructions:</h3>
-            <p>1. Click "Add Nodes Mode" and click in the canvas to add nodes</p>
-            <p>2. Click "Add Edges Mode" and drag between nodes to create edges</p>
-            <p>3. Select nodes/edges and click "Delete Selected" to remove them</p>
-            <p>4. Click "Find Articulation Points" to highlight critical nodes in red</p>
-            <p>5. Click "Reset Colors" to remove highlighting</p>
-            <p>6. Click "Clear Graph" to start over</p>
-        </div>
+      <h1>Interactive Graph Creator</h1>
+      <div class="controls">
+        <button onclick="enableNodeMode()">Add Nodes Mode</button>
+        <button onclick="enableEdgeMode()">Add Edges Mode</button>
+        <button onclick="deleteSelected()">Delete Selected</button>
+        <button onclick="findArticulationPoints()">
+          Find Articulation Points
+        </button>
+        <button onclick="resetGraph()">Reset Colors</button>
+        <button onclick="clearGraph()">Clear Graph</button>
+        <div class="mode-label" id="modeDisplay">Current Mode: None</div>
+      </div>
+      <div id="mynetwork"></div>
+      <div class="instructions">
+        <h3>Instructions:</h3>
+        <p>1. Click "Add Nodes Mode" and click in the canvas to add nodes</p>
+        <p>2. Click "Add Edges Mode" and drag between nodes to create edges</p>
+        <p>3. Select nodes/edges and click "Delete Selected" to remove them</p>
+        <p>
+          4. Click "Find Articulation Points" to highlight critical nodes in red
+        </p>
+        <p>5. Click "Reset Colors" to remove highlighting</p>
+        <p>6. Click "Clear Graph" to start over</p>
+      </div>
     </div>
 
     <script>
-        // Create an array to store nodes and edges
-        let nodes = new vis.DataSet();
-        let edges = new vis.DataSet();
-        let nodeIdCounter = 0;
+      // Create an array to store nodes and edges
+      let nodes = new vis.DataSet();
+      let edges = new vis.DataSet();
+      let nodeIdCounter = 0;
 
-        // Create network
-        let container = document.getElementById('mynetwork');
-        let data = {
-            nodes: nodes,
-            edges: edges
-        };
-        let options = {
-            nodes: {
-                color: {
-                    background: '#97C2FC',
-                    border: '#2B7CE9'
-                },
-                shape: 'circle',
-                size: 30,
-                font: {
-                    size: 20
-                }
-            },
-            edges: {
-                width: 2
-            },
-            manipulation: {
-                enabled: false,
-                addNode: function(nodeData, callback) {
-                    nodeData.label = '' + nodeIdCounter;
-                    nodeData.id = nodeIdCounter++;
-                    callback(nodeData);
-                },
-                addEdge: function(edgeData, callback) {
-                    if (edgeData.from === edgeData.to) {
-                        callback(null); // Cancel self-loops
-                    } else {
-                        callback(edgeData);
-                    }
-                }
-            },
-            physics: {
-                stabilization: true
+      // Create network
+      let container = document.getElementById("mynetwork");
+      let data = {
+        nodes: nodes,
+        edges: edges,
+      };
+      let options = {
+        nodes: {
+          color: {
+            background: "#97C2FC",
+            border: "#2B7CE9",
+          },
+          shape: "circle",
+          size: 30,
+          font: {
+            size: 20,
+          },
+        },
+        edges: {
+          width: 2,
+        },
+        manipulation: {
+          enabled: false,
+          addNode: function (nodeData, callback) {
+            nodeData.label = "" + nodeIdCounter;
+            nodeData.id = nodeIdCounter++;
+            callback(nodeData);
+          },
+          addEdge: function (edgeData, callback) {
+            if (edgeData.from === edgeData.to) {
+              callback(null); // Cancel self-loops
+            } else {
+              callback(edgeData);
             }
-        };
-        let network = new vis.Network(container, data, options);
+          },
+        },
+        physics: {
+          stabilization: true,
+        },
+      };
+      let network = new vis.Network(container, data, options);
 
-        function enableNodeMode() {
-            network.addNodeMode();
-            document.getElementById('modeDisplay').innerHTML = 'Current Mode: Adding Nodes';
-        }
+      function enableNodeMode() {
+        network.addNodeMode();
+        document.getElementById("modeDisplay").innerHTML =
+          "Current Mode: Adding Nodes";
+      }
 
-        function enableEdgeMode() {
-            network.addEdgeMode();
-            document.getElementById('modeDisplay').innerHTML = 'Current Mode: Adding Edges';
-        }
+      function enableEdgeMode() {
+        network.addEdgeMode();
+        document.getElementById("modeDisplay").innerHTML =
+          "Current Mode: Adding Edges";
+      }
 
-        function deleteSelected() {
-            network.deleteSelected();
-            document.getElementById('modeDisplay').innerHTML = 'Current Mode: None';
-        }
+      function deleteSelected() {
+        network.deleteSelected();
+        document.getElementById("modeDisplay").innerHTML = "Current Mode: None";
+      }
 
-        function clearGraph() {
-            nodes.clear();
-            edges.clear();
-            nodeIdCounter = 0;
-            document.getElementById('modeDisplay').innerHTML = 'Current Mode: None';
-        }
+      function clearGraph() {
+        nodes.clear();
+        edges.clear();
+        nodeIdCounter = 0;
+        document.getElementById("modeDisplay").innerHTML = "Current Mode: None";
+      }
 
-        function buildAdjacencyList() {
-            let adj = {};
-            let nodeIds = nodes.getIds();
-            
-            // Initialize empty adjacency lists for all nodes
-            nodeIds.forEach(id => {
-                adj[id] = [];
-            });
-            
-            // Add edges to adjacency lists
-            edges.forEach(edge => {
-                adj[edge.from].push(edge.to);
-                adj[edge.to].push(edge.from); // For undirected graph
-            });
-            
-            return adj;
-        }
+      function buildAdjacencyList() {
+        let adj = {};
+        let nodeIds = nodes.getIds();
 
-        function DFS(adj, u, discoveryTime, low, parent, articulation_point) {
-            var time = 0;
-            discoveryTime[u] = low[u] = time;
-            time++;
-            var children = 0;
-            
-            for(var v of adj[u]) {
-                if(discoveryTime[v] == -1) {
-                    children++;
-                    parent[v] = u;
-                    DFS(adj, v, discoveryTime, low, parent, articulation_point);
-                    low[u] = Math.min(low[u], low[v]);
-                    
-                    if(parent[u] == -1 && children > 1) {
-                        articulation_point[u] = true;
-                    }
-                    
-                    if(parent[u] != -1 && low[v] >= discoveryTime[u]) {
-                        articulation_point[u] = true;
-                    }
-                } else if(v != parent[u]) {
-                    low[u] = Math.min(low[u], discoveryTime[v]);
-                }
-            }
-        }
+        // Initialize empty adjacency lists for all nodes
+        nodeIds.forEach((id) => {
+          adj[id] = [];
+        });
 
-        function findArticulationPoints() {
-            let adj = buildAdjacencyList();
-            let n = nodes.length;
-            var discoveryTime = new Array(n).fill(-1);
-            var low = new Array(n).fill(-1);
-            var parent = new Array(n).fill(-1);
-            var articulation_point = new Array(n).fill(false);
-            
-            let nodeIds = nodes.getIds();
-            nodeIds.forEach(id => {
-                if(discoveryTime[id] == -1) {
-                    DFS(adj, id, discoveryTime, low, parent, articulation_point);
-                }
-            });
-            
-            // Highlight articulation points
-            nodes.forEach(node => {
-                if(articulation_point[node.id]) {
-                    nodes.update({
-                        id: node.id,
-                        color: {
-                            background: '#FF0000',
-                            border: '#CC0000'
-                        }
-                    });
-                    console.log("Articulation point:", node.id);
-                }
-            });
-        }
+        // Add edges to adjacency lists
+        edges.forEach((edge) => {
+          adj[edge.from].push(edge.to);
+          adj[edge.to].push(edge.from); // For undirected graph
+        });
 
-        function resetGraph() {
-            // Reset all nodes to original color
-            nodes.forEach(node => {
-                nodes.update({
-                    id: node.id,
-                    color: {
-                        background: '#97C2FC',
-                        border: '#2B7CE9'
-                    }
-                });
-            });
-            document.getElementById('modeDisplay').innerHTML = 'Current Mode: None';
-        }
+        return adj;
+      }
+
+      function DFS(adj, u, discoveryTime, low, parent, articulationPoints, time) {
+  let children = 0;
+  discoveryTime[u] = low[u] = ++time[0];
+
+  for (let v of adj[u]) {
+    if (discoveryTime[v] === -1) {
+      children++;
+      parent[v] = u;
+      DFS(adj, v, discoveryTime, low, parent, articulationPoints, time);
+
+      low[u] = Math.min(low[u], low[v]);
+
+      if (parent[u] === -1 && children > 1) {
+        articulationPoints[u] = true;
+      }
+
+      if (parent[u] !== -1 && low[v] >= discoveryTime[u]) {
+        articulationPoints[u] = true;
+      }
+    } else if (v !== parent[u]) {
+      low[u] = Math.min(low[u], discoveryTime[v]);
+    }
+  }
+}
+
+function findArticulationPoints() {
+  let adj = buildAdjacencyList();
+  const n = nodes.length;
+  let discoveryTime = new Array(n).fill(-1);
+  let low = new Array(n).fill(-1);
+  let parent = new Array(n).fill(-1);
+  let articulationPoints = new Array(n).fill(false);
+  let time = [0];  // Use an array to pass time by reference
+
+  for (let i = 0; i < n; i++) {
+    if (discoveryTime[i] === -1) {
+      DFS(adj, i, discoveryTime, low, parent, articulationPoints, time);
+    }
+  }
+
+  // Highlight articulation points
+  nodes.forEach((node) => {
+    if (articulationPoints[node.id]) {
+      nodes.update({
+        id: node.id,
+        color: {
+          background: "#FF0000",
+          border: "#CC0000",
+        },
+      });
+      console.log("Articulation point:", node.id);
+    }
+  });
+}
+      function resetGraph() {
+        // Reset all nodes to original color
+        nodes.forEach((node) => {
+          nodes.update({
+            id: node.id,
+            color: {
+              background: "#97C2FC",
+              border: "#2B7CE9",
+            },
+          });
+        });
+        document.getElementById("modeDisplay").innerHTML = "Current Mode: None";
+      }
     </script>
-</body>
+  </body>
 </html>
