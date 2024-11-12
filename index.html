@@ -32,7 +32,7 @@
         font-size: 16px;
         margin: 10px;
         cursor: pointer;
-        background-color: #4caf50;
+        background-color: burlywood;
         color: white;
         border: none;
         border-radius: 4px;
@@ -65,17 +65,6 @@
         <div class="mode-label" id="modeDisplay">Current Mode: None</div>
       </div>
       <div id="mynetwork"></div>
-      <div class="instructions">
-        <h3>Instructions:</h3>
-        <p>1. Click "Add Nodes Mode" and click in the canvas to add nodes</p>
-        <p>2. Click "Add Edges Mode" and drag between nodes to create edges</p>
-        <p>3. Select nodes/edges and click "Delete Selected" to remove them</p>
-        <p>
-          4. Click "Find Articulation Points" to highlight critical nodes in red
-        </p>
-        <p>5. Click "Reset Colors" to remove highlighting</p>
-        <p>6. Click "Clear Graph" to start over</p>
-      </div>
     </div>
 
     <script>
@@ -91,39 +80,67 @@
         edges: edges,
       };
       let options = {
-        nodes: {
-          color: {
-            background: "#97C2FC",
-            border: "#2B7CE9",
-          },
-          shape: "circle",
-          size: 30,
-          font: {
-            size: 20,
-          },
-        },
-        edges: {
-          width: 2,
-        },
-        manipulation: {
-          enabled: false,
-          addNode: function (nodeData, callback) {
-            nodeData.label = "" + nodeIdCounter;
-            nodeData.id = nodeIdCounter++;
-            callback(nodeData);
-          },
-          addEdge: function (edgeData, callback) {
-            if (edgeData.from === edgeData.to) {
-              callback(null); // Cancel self-loops
-            } else {
-              callback(edgeData);
-            }
-          },
-        },
-        physics: {
-          stabilization: true,
-        },
-      };
+  nodes: {
+    color: {
+      background: "#97C2FC",
+      border: "#2B7CE9",
+    },
+    shape: "circle",
+    size: 30,
+    font: {
+      size: 20,
+    },
+    fixed: {
+      x: false,
+      y: false
+    }
+  },
+  edges: {
+    width: 2,
+    smooth: {
+      type: 'continuous'
+    }
+  },
+  manipulation: {
+    enabled: false,
+    addNode: function (nodeData, callback) {
+      nodeData.label = "" + nodeIdCounter;
+      nodeData.id = nodeIdCounter++;
+      callback(nodeData);
+    },
+    addEdge: function (edgeData, callback) {
+      if (edgeData.from === edgeData.to) {
+        callback(null); // Cancel self-loops
+      } else {
+        callback(edgeData);
+      }
+    },
+  },
+  physics: {
+    enabled: false,
+    stabilization: {
+      enabled: true,
+      iterations: 1000,
+      updateInterval: 100,
+      onlyDynamicEdges: false,
+      fit: true
+    },
+    barnesHut: {
+      gravitationalConstant: -2000,
+      centralGravity: 0.3,
+      springLength: 95,
+      springConstant: 0.04,
+      damping: 0.09,
+      avoidOverlap: 0
+    },
+    solver: 'barnesHut'
+  },
+  interaction: {
+    dragNodes: true,
+    dragView: true,
+    zoomView: true
+  }
+};
       let network = new vis.Network(container, data, options);
 
       function enableNodeMode() {
